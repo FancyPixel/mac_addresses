@@ -44,7 +44,7 @@ describe MacAddresses do
         end
 
         it 'is expected to raise' do
-          expect { subject.fetch }.to raise_error RuntimeError
+          expect { subject.fetch }.to raise_error subject::Exceptions::NoneOfCommandsSuccessful
         end
       end
     end
@@ -79,7 +79,7 @@ describe MacAddresses do
     context 'when platform is MacOS' do
 
       context 'when command is ifconfig' do
-        it 'is expected to return candidates addresses' do
+        it 'is expected to return candidate addresses' do
           expect(subject.parse(DataSupport.platform_command(:macos, :ifconfig))).to eq expected_candidates[DataSupport.platform_command(:macos, :ifconfig)]
         end
       end
@@ -88,9 +88,15 @@ describe MacAddresses do
     context 'when platform is Linux' do
 
       context 'when command is ifconfig' do
-        it 'is expected to return candidates addresses' do
+        it 'is expected to return candidate addresses' do
           expect(subject.parse(DataSupport.platform_command(:linux, :ifconfig))).to eq expected_candidates[DataSupport.platform_command(:linux, :ifconfig)]
         end
+      end
+    end
+
+    context 'when no candidate addresses are available' do
+      it 'is expected to return an empty Array' do
+        expect(subject.parse '').to eq []
       end
     end
   end

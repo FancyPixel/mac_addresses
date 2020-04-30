@@ -14,6 +14,7 @@
 #   MacAddresses.list
 
 require 'socket'
+require_relative 'mac_addresses/exceptions'
 
 module MacAddresses
 
@@ -32,7 +33,6 @@ module MacAddresses
     ##
     # Discovers and returns the system's MAC addresses.
     #   MacAddresses.fetch
-
     def fetch
       @addresses = from_getifaddrs
       return @addresses if @addresses
@@ -46,7 +46,9 @@ module MacAddresses
         break # break as soon as we successfully parse a command output
       end
 
-      raise "None of #{ COMMANDS.join ', ' } succeeded returning MAC addresses info" unless success
+      unless success
+        raise Exceptions::NoneOfCommandsSuccessful, COMMANDS
+      end
 
       @addresses
     end
@@ -76,9 +78,7 @@ module MacAddresses
     end
 
     def parse(output)
-      candidates = output.scan(ADDRESS_REGEXP).map &:strip
-      raise 'No mac address candidates' unless candidates.any?
-      candidates
+      output.scan(ADDRESS_REGEXP).map &:strip
     end
   end
 end
