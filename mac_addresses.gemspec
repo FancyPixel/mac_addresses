@@ -15,4 +15,6 @@ Gem::Specification::new do |spec|
   spec.homepage = 'https://github.com/FancyPixel/mac_addresses'
 
   spec.required_ruby_version = '>= 2.5.0'
+
+  spec.add_development_dependency 'rake', '>= 12.3.3'
 end
