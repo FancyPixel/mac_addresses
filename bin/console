@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+
+%w(irb irb/completion).each { |r| require r }
+require_relative '../lib/mac_addresses'
+
+ARGV.clear
+IRB.start
