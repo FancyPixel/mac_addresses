@@ -73,7 +73,7 @@ describe MacAddresses do
   end
 
   describe '::parse' do
-    let(:expected_candidates) { proc { |data| data.scan(subject::ADDRESS_REGEXP).map(&:strip) } }
+    let(:expected_candidates) { proc { |data| data.scan(subject::ADDRESS_REGEXP).flatten } }
 
     context 'when platform is MacOS' do
 

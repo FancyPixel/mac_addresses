@@ -19,7 +19,8 @@ require_relative 'mac_addresses/exceptions'
 module MacAddresses
 
   COMMANDS = '/sbin/ifconfig', '/bin/ifconfig', 'ifconfig', 'ipconfig /all', 'cat /sys/class/net/*/address'
-  ADDRESS_REGEXP = %r/(?:[^:\-]|\A)(?:[0-9A-F][0-9A-F][:\-]){5}[0-9A-F][0-9A-F](?:[^:\-]|\Z)/io
+  ADDRESS_REGEXP = /([0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2})/
+  NOT_VALID_MACS = ['00:00:00:00:00:00']
   PROTOCOL_FAMILIES = 'PF_LINK', 'PF_PACKET'
   fam = PROTOCOL_FAMILIES.find { |fam| Socket.const_defined?(fam) }
   if fam
@@ -62,27 +63,18 @@ module MacAddresses
 
       interfaces = Socket.getifaddrs.select do |addr|
         addr.addr &&  # Some VPN ifcs don't have an addr - ignore them
-          addr.addr.pfamily == PROTOCOL_FAMILY
+          addr.addr.pfamily == MacAddresses::PROTOCOL_FAMILY
       end
 
-      macs = if Socket.const_defined? :PF_LINK
-               interfaces.map do |addr|
-                 addr.addr.getnameinfo
-               end.map do |m,|
-                 m if (m && !m.empty?)
-               end.compact
-             elsif Socket.const_defined? :PF_PACKET
-               interfaces.map do |addr|
-                 addr.addr.inspect_sockaddr[/hwaddr=([\h:]+)/, 1]
-               end.map do |mac_addr|
-                 mac_addr != '00:00:00:00:00:00'
-               end
-             end
-      macs
+      interfaces.inject([]) do |found, iface|
+        macs = parse iface.addr.inspect_sockaddr
+        found << macs.select { |mac| mac != '00:00:00:00:00:00' }
+      end.flatten
     end
 
-    def parse(output)
-      output.scan(ADDRESS_REGEXP).map &:strip
+    # Scans a string and returns an Array of found MACs
+    def parse(string)
+      string.scan(ADDRESS_REGEXP).flatten
     end
   end
 end
