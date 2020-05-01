@@ -7,5 +7,12 @@ module MacAddresses
         super(message)
       end
     end
+
+    class ProtocolFamilyNotFound < StandardError
+      def initialize(families, msg = nil)
+        message = message || "Socket protocol family not found: tried with #{families.join ', '}"
+        super(message)
+      end
+    end
   end
 end

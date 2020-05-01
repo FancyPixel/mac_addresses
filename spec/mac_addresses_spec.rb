@@ -2,7 +2,6 @@ describe MacAddresses do
   subject { MacAddresses }
 
   context 'attr_*' do
-
     it { is_expected.to have_attr_reader :addresses }
   end
 

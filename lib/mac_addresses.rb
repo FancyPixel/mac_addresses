@@ -20,9 +20,13 @@ module MacAddresses
 
   COMMANDS = '/sbin/ifconfig', '/bin/ifconfig', 'ifconfig', 'ipconfig /all', 'cat /sys/class/net/*/address'
   ADDRESS_REGEXP = %r/(?:[^:\-]|\A)(?:[0-9A-F][0-9A-F][:\-]){5}[0-9A-F][0-9A-F](?:[^:\-]|\Z)/io
-  LINK = Socket::PF_LINK   if Socket.const_defined? :PF_LINK
-  PACKET = Socket::PF_PACKET if Socket.const_defined? :PF_PACKET
-  INTERFACE_PACKET_FAMILY = LINK || PACKET
+  PROTOCOL_FAMILIES = 'PF_LINK', 'PF_PACKET'
+  fam = PROTOCOL_FAMILIES.find { |fam| Socket.const_defined?(fam) }
+  if fam
+    PROTOCOL_FAMILY = Socket.const_get fam
+  else
+    raise Exceptions::ProtocolFamilyNotFound, PROTOCOL_FAMILIES
+  end
 
   class << self
 
@@ -58,7 +62,7 @@ module MacAddresses
 
       interfaces = Socket.getifaddrs.select do |addr|
         addr.addr &&  # Some VPN ifcs don't have an addr - ignore them
-          addr.addr.pfamily == INTERFACE_PACKET_FAMILY
+          addr.addr.pfamily == PROTOCOL_FAMILY
       end
 
       macs = if Socket.const_defined? :PF_LINK
